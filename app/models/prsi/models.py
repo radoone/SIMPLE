@@ -1,10 +1,20 @@
-from stable_baselines.common.distributions import CategoricalProbabilityDistribution
-from stable_baselines.common.policies import ActorCriticPolicy
-import tensorflow.keras.backend as K
-from tensorflow.keras.layers import BatchNormalization, Activation, Flatten, Add, Dense, Multiply, Concatenate, Lambda
 import numpy as np
 import tensorflow as tf
-tf.get_logger().setLevel('INFO')
+import tensorflow.keras.backend as K
+from stable_baselines.common.distributions import CategoricalProbabilityDistribution
+from stable_baselines.common.policies import ActorCriticPolicy
+from tensorflow.keras.layers import (
+    Activation,
+    Add,
+    BatchNormalization,
+    Concatenate,
+    Dense,
+    Flatten,
+    Lambda,
+    Multiply,
+)
+
+tf.get_logger().setLevel("INFO")
 tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
 
 
@@ -13,9 +23,12 @@ FEATURE_SIZE = 64
 
 
 class CustomPolicy(ActorCriticPolicy):
-    def __init__(self, sess, ob_space, ac_space, n_env, n_steps, n_batch, reuse=False, **kwargs):
-        super(CustomPolicy, self).__init__(sess, ob_space, ac_space,
-                                           n_env, n_steps, n_batch, reuse=reuse, scale=True)
+    def __init__(
+        self, sess, ob_space, ac_space, n_env, n_steps, n_batch, reuse=False, **kwargs
+    ):
+        super(CustomPolicy, self).__init__(
+            sess, ob_space, ac_space, n_env, n_steps, n_batch, reuse=reuse, scale=True
+        )
 
         with tf.variable_scope("model", reuse=reuse):
 
@@ -25,18 +38,20 @@ class CustomPolicy(ActorCriticPolicy):
 
             self._policy = policy_head(extracted_features, legal_actions)
             self._value_fn, self.q_value = value_head(extracted_features)
-            self._proba_distribution = CategoricalProbabilityDistribution(
-                self._policy)
+            self._proba_distribution = CategoricalProbabilityDistribution(self._policy)
 
         self._setup_init()
 
     def step(self, obs, state=None, mask=None, deterministic=False):
         if deterministic:
-            action, value, neglogp = self.sess.run([self.deterministic_action, self.value_flat, self.neglogp],
-                                                   {self.obs_ph: obs})
+            action, value, neglogp = self.sess.run(
+                [self.deterministic_action, self.value_flat, self.neglogp],
+                {self.obs_ph: obs},
+            )
         else:
-            action, value, neglogp = self.sess.run([self.action, self.value_flat, self.neglogp],
-                                                   {self.obs_ph: obs})
+            action, value, neglogp = self.sess.run(
+                [self.action, self.value_flat, self.neglogp], {self.obs_ph: obs}
+            )
         return action, value, self.initial_state, neglogp
 
     def proba_step(self, obs, state=None, mask=None):
@@ -52,15 +67,15 @@ def split_input(obs, split):
 
 def value_head(y):
     y = dense(y, FEATURE_SIZE)
-    vf = dense(y, 1, batch_norm=False, activation='tanh', name='vf')
-    q = dense(y, ACTIONS, batch_norm=False, activation='tanh', name='q')
+    vf = dense(y, 1, batch_norm=False, activation="tanh", name="vf")
+    q = dense(y, ACTIONS, batch_norm=False, activation="tanh", name="q")
     return vf, q
 
 
 def policy_head(y, legal_actions):
 
     y = dense(y, FEATURE_SIZE)
-    policy = dense(y, ACTIONS, batch_norm=False, activation=None, name='pi')
+    policy = dense(y, ACTIONS, batch_norm=False, activation=None, name="pi")
 
     mask = Lambda(lambda x: (1 - x) * -1e8)(legal_actions)
 
@@ -81,12 +96,12 @@ def residual(y, filters):
     y = dense(y, filters)
     y = dense(y, filters, activation=None)
     y = Add()([shortcut, y])
-    y = Activation('relu')(y)
+    y = Activation("relu")(y)
 
     return y
 
 
-def dense(y, filters, batch_norm=False, activation='relu', name=None):
+def dense(y, filters, batch_norm=False, activation="relu", name=None):
 
     if batch_norm or activation:
         y = Dense(filters)(y)

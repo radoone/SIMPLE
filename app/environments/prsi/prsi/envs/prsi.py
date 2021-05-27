@@ -6,11 +6,11 @@ from .classes import Player, Deck, Card
 
 
 class PrsiEnv(gym.Env):
-    metadata = {'render.modes': ['human']}
+    metadata = {"render.modes": ["human"]}
 
     def __init__(self, verbose=False, manual=False):
         super(PrsiEnv, self).__init__()
-        self.name = 'prsi'
+        self.name = "prsi"
         self.manual = manual
         self.played_cards = []
         self.verbose = verbose
@@ -25,8 +25,7 @@ class PrsiEnv(gym.Env):
         self.total_cards = 32
         self.action_space = gym.spaces.Discrete(35)
 
-        self.observation_space = gym.spaces.Box(
-            low=0, high=1, shape=(280,))
+        self.observation_space = gym.spaces.Box(low=0, high=1, shape=(280,))
 
         self.verbose = verbose
         self.zobrane3 = False
@@ -35,12 +34,12 @@ class PrsiEnv(gym.Env):
         self.ktoryvysnik = False
         self.beres = 0
 
-    @ property
+    @property
     def observation(self):
         obs = np.zeros(([6, 35]))
         maybe = np.zeros(35)
 
-      # moje karty
+        # moje karty
         # mojekarty = np.zeros(32)
         for card in self.current_player.hand.cards:
             obs[0][card.id] = 1
@@ -57,7 +56,7 @@ class PrsiEnv(gym.Env):
             maybe[card.id] = 1
 
         for i in range(self.n_players):
-            obs[4+i][len(self.players[i].hand.cards)] = 1
+            obs[4 + i][len(self.players[i].hand.cards)] = 1
 
         ret = obs
         ret = np.append(ret, maybe)
@@ -65,7 +64,7 @@ class PrsiEnv(gym.Env):
 
         return ret
 
-    @ property
+    @property
     def legal_actions(self):
         legal_actions = np.zeros(self.action_space.n)
         hand = self.current_player.hand.cards
@@ -100,15 +99,17 @@ class PrsiEnv(gym.Env):
                     # # meni na cerven
                     legal_actions[30] = 1
 
-                elif (card.suit == self.menimna):
+                elif card.suit == self.menimna:
                     legal_actions[card.id] = 1
 
-                elif (not self.menimna and (card.suit == self.tableCard.suit or card.name == self.tableCard.name)):
+                elif not self.menimna and (
+                    card.suit == self.tableCard.suit or card.name == self.tableCard.name
+                ):
                     legal_actions[card.id] = 1
 
         return legal_actions
 
-    @ property
+    @property
     def current_player(self):
         return self.players[self.current_player_num]
 
@@ -118,11 +119,13 @@ class PrsiEnv(gym.Env):
         menimna = self.menimna
 
         # check if have card in deck
-        if self.deck.size() == 0 or (action == 34 and self.deck.size() < 3+self.beres):
+        if self.deck.size() == 0 or (
+            action == 34 and self.deck.size() < 3 + self.beres
+        ):
             done = True
         # check move legality
         elif self.legal_actions[action] == 0:
-            reward = [1.0/(self.n_players-1)] * self.n_players
+            reward = [1.0 / (self.n_players - 1)] * self.n_players
             reward[self.current_player_num] = -1
             done = True
 
@@ -133,7 +136,7 @@ class PrsiEnv(gym.Env):
                 self.current_player.hand.add(self.deck.pop())
             # beres tri
             elif action == 34:
-                self.current_player.hand.add(self.deck.pop(3+self.beres))
+                self.current_player.hand.add(self.deck.pop(3 + self.beres))
                 self.zobrane3 = True
                 self.beres = 0
             # stojis
@@ -159,8 +162,10 @@ class PrsiEnv(gym.Env):
                 self.zobrane3 = False
                 self.stalsom = False
                 # prebijam 7
-                if self.tableCard.name == "VII" and (action == 1 or action == 9 or action == 17 or action == 25):
-                    self.beres = self.beres+3
+                if self.tableCard.name == "VII" and (
+                    action == 1 or action == 9 or action == 17 or action == 25
+                ):
+                    self.beres = self.beres + 3
 
                 self.deck.cards.append(self.tableCard)
                 self.played_cards.append(self.tableCard)
@@ -172,8 +177,7 @@ class PrsiEnv(gym.Env):
         self.done = done
         self.round += 1
 
-        self.current_player_num = (
-            self.current_player_num + 1) % self.n_players
+        self.current_player_num = (self.current_player_num + 1) % self.n_players
         self.menimna = menimna
         return self.observation, reward, done, {}
 
@@ -203,44 +207,42 @@ class PrsiEnv(gym.Env):
         self.current_player_num = 0
         self.done = False
         self.tableCard = self.deck.pop()[0]
-        logger.debug(f'\n\n---- NEW GAME ----')
+        logger.debug(f"\n\n---- NEW GAME ----")
         return self.observation
 
-    def render(self, mode='human', close=False):
+    def render(self, mode="human", close=False):
 
         if close:
             return
 
-            logger.debug(
-                f'\n\n-------ROUND {self.round}-----------')
-            logger.debug(
-                f"It is Player {self.current_player.id}'s turn to choose")
+            logger.debug(f"\n\n-------ROUND {self.round}-----------")
+            logger.debug(f"It is Player {self.current_player.id}'s turn to choose")
 
         for p in self.players:
-            logger.debug(f'\nPlayer {p.id}\'s hand')
+            logger.debug(f"\nPlayer {p.id}'s hand")
             for card in p.hand.cards:
                 logger.debug(card.id, "  \t", card.name, "  \t", card.suit)
 
-        logger.debug(
-            f'\nTable card: {self.tableCard.name} {self.tableCard.suit}')
+        logger.debug(f"\nTable card: {self.tableCard.name} {self.tableCard.suit}")
 
-        logger.debug(f'\n{self.deck.size()} cards left in deck')
+        logger.debug(f"\n{self.deck.size()} cards left in deck")
         if self.menimna:
-            logger.debug(f'\nMenim na {self.menimna}')
+            logger.debug(f"\nMenim na {self.menimna}")
 
         if self.verbose:
-            logger.debug(f'\n\nRound {self.round}')
+            logger.debug(f"\n\nRound {self.round}")
             logger.debug(
-                f'\nObservation: \n{[i if o == 1 else (i,o) for i,o in enumerate(self.observation) if o != 0]}')
+                f"\nObservation: \n{[i if o == 1 else (i,o) for i,o in enumerate(self.observation) if o != 0]}"
+            )
 
         if not self.done:
             logger.debug(
-                f'\nLegal actions: {[i for i,o in enumerate(self.legal_actions) if o != 0]}')
+                f"\nLegal actions: {[i for i,o in enumerate(self.legal_actions) if o != 0]}"
+            )
 
         if self.done:
-            logger.debug(f'\n\nRound {self.round}')
-            logger.debug(f'\n\nGAME OVER')
+            logger.debug(f"\n\nRound {self.round}")
+            logger.debug(f"\n\nGAME OVER")
 
     def rules_move(self):
-        raise Exception(
-            'Rules based agent is not yet implemented for Sushi Go!')
+        raise Exception("Rules based agent is not yet implemented for Sushi Go!")

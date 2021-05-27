@@ -1,21 +1,21 @@
 import random
 
 
-class Player():
+class Player:
     def __init__(self, id):
         self.id = id
         self.score = 0
         self.hand = Hand()
 
 
-class Card():
+class Card:
     def __init__(self, id, suit, name):
         self.id = id
         self.suit = suit
         self.name = name
 
 
-class Deck():
+class Deck:
     def __init__(self):
         self.create()
 
@@ -45,7 +45,6 @@ class Deck():
             Card(6, "Gula", "Vysnik"),
             Card(7, "Gula", "Kral"),
             Card(8, "Gula", "Eso"),
-
             Card(9, "Zalud", "VII"),
             Card(10, "Zalud", "VIII"),
             Card(11, "Zalud", "IX"),
@@ -54,7 +53,6 @@ class Deck():
             Card(14, "Zalud", "Vysnik"),
             Card(15, "Zalud", "Kral"),
             Card(16, "Zalud", "Eso"),
-
             Card(17, "Zelen", "VII"),
             Card(18, "Zelen", "VIII"),
             Card(19, "Zelen", "IX"),
@@ -63,7 +61,6 @@ class Deck():
             Card(22, "Zelen", "Vysnik"),
             Card(23, "Zelen", "Kral"),
             Card(24, "Zelen", "Eso"),
-
             Card(25, "Cerven", "VII"),
             Card(26, "Cerven", "VIII"),
             Card(27, "Cerven", "IX"),
@@ -79,7 +76,7 @@ class Deck():
         return len(self.cards)
 
 
-class Hand():
+class Hand:
     def __init__(self):
         self.cards = []
 
@@ -106,28 +103,9 @@ class Hand():
         return playable
 
 
-class Game():
+class Game:
     def __init__(self):
         self.players = []
         self.deck = Deck()
         self.tableCard = None
         self.playedCards = []
-
-# Development test
-
-
-""" deck = Deck()
-hand = Hand()
-
-tableCard = deck.cards.pop()
-hand.add(deck.pop(5))
-
-print("Otocena:", tableCard.name, tableCard.suit)
-print("V decku:", len(deck.cards))
-print("V ruke", len(hand.cards))
-
-mozedat = hand.playable(tableCard)
-
-for card in mozedat:
-    print("Mozem dat: ", card.name, card.suit)
- """
